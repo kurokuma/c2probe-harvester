@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual env
+.venv/
+venv/
+env/
+
+# Build / packaging output
+dist/
+build/
+
+# Local analysis working dir (notes, diagrams, screenshots)
+diagnostics/
+
+# Collection outputs & samples — malware, never commit
+harvest/
+harvest-*/
+capture/
+capture-*/
+*.bin
+*.bin.part
+extract-report.json
+harvest-summary.json
+metadata.json
+
+# Target lists (live C2 addresses) and private parameters
+targets*.txt
+private-params.yaml
+*.params.yaml
+secrets.yaml
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Upstream c2probe rules — fetched via --probe-dir, not vendored here
+probes/
+upstream-manifest.json

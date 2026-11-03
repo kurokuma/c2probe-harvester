@@ -1,0 +1,2 @@
+PyYAML>=6.0.3,<7
+pefile>=2023.2.7  # 解析パイプライン (scripts/extract_sample.py) の PE carve 用

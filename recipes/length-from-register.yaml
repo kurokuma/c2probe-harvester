@@ -1,0 +1,7 @@
+download_version: 1
+description: Receive the number of body bytes extracted by the selected probe.
+evidence: Example only; confirm the length field and framing for the target protocol.
+artifact:
+  mode: stream
+  length: "$stage_size"
+  max_bytes: 1048576

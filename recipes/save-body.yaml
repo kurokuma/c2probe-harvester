@@ -1,0 +1,5 @@
+download_version: 1
+description: Save a probe buffer named body.
+artifact:
+  mode: buffer
+  source: "$body"

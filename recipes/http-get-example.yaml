@@ -1,0 +1,24 @@
+download_version: 1
+description: Example follow-up GET on the same IP and port after a positive probe.
+evidence: Replace the example path and Host with the documented download request.
+steps:
+  - reconnect: {}
+  - send_http:
+      method: GET
+      path: /example/sample.bin
+      headers:
+        Host: "$target_ip"
+        Connection: close
+  - recv_http:
+      max_header_bytes: 16384
+      max_body_bytes: 16777216
+      header_as: download_header
+      body_as: download_body
+      status_as: download_status
+      content_length_as: download_length
+  - reject_if:
+      ne: {left: "$download_status", right: 200}
+      status: download_http_status_mismatch
+artifact:
+  mode: buffer
+  source: "$download_body"

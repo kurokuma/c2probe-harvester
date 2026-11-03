@@ -1,0 +1,6 @@
+download_version: 1
+description: Save the HTTP body already received by the probe, excluding HTTP headers.
+evidence: Response content is not necessarily an executable or a malware sample.
+artifact:
+  mode: buffer
+  source: "$response_body"

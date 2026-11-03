@@ -1,0 +1,17 @@
+download_version: 1
+description: Receive a body whose total frame length includes the already-read header.
+evidence: Observed on 2026-11-03 at 134.122.204.23:443 with the selected VVAS probe; applicability to other endpoints is unverified.
+steps:
+  - extract:
+      source: response
+      name: acquisition_header_bytes
+      type: bufferlen
+      offset: 0
+  - reject_if:
+      lt: {left: "$stage_size", right: "$acquisition_header_bytes"}
+      status: total_length_smaller_than_header
+artifact:
+  mode: stream
+  length:
+    sub: {left: "$stage_size", right: "$acquisition_header_bytes"}
+  max_bytes: 1048576
