@@ -1,4 +1,4 @@
-# mal-sim — ValleyRAT 検体の一括収集・解析パイプライン
+# C2サーバから検体の収集・解析パイプライン
 
 [c2probe の判定ルール](https://github.com/kurokuma/c2probe/tree/main/probes)で C2 を叩き、ステージを取得し、難読化を解いて解析可能な PE まで自動で切り出すツールです。送信バイト列・判定・復号はすべて YAML で駆動します。Linux / Python 3.9+、コンパイル不要。
 
