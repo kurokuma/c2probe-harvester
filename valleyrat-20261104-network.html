@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ValleyRAT VVAS クラスタ 階層図 (2026-11-04)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.9/standalone/umd/vis-network.min.js"></script>
+<style>
+  :root { color-scheme: light dark; }
+  body { margin: 0; font-family: system-ui, "Noto Sans JP", sans-serif; background: #faf9f5; color: #2c2c2a; }
+  @media (prefers-color-scheme: dark) { body { background: #1c1c1a; color: #e5e3da; } }
+  header { padding: 12px 16px 4px; }
+  h1 { font-size: 16px; font-weight: 500; margin: 0 0 2px; }
+  p.sub { font-size: 12px; margin: 0; opacity: .7; }
+  #net { width: 100%; height: 1400px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; padding: 6px 16px 14px; font-size: 12px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+</style>
+</head>
+<body>
+<header>
+  <h1>ValleyRAT VVAS — モジュール → 鍵 → IP → port (2026-11-04)</h1>
+  <p class="sub">モジュールごとに分離。同一ポートはクラスタ内で1ノードに集約。ノードはドラッグ移動可。無応答・空ステージは除外。</p>
+</header>
+<div id="net"></div>
+<div class="legend">
+  <span><i class="sw" style="background:#1D9E75"></i>鍵 0x36</span>
+  <span><i class="sw" style="background:#7F77DD"></i>鍵 0x0e</span>
+  <span><i class="sw" style="background:#EF9F27"></i>鍵 0x9d</span>
+  <span><i class="sw" style="background:#E24B4A"></i>AES/SM4-ECB（解読不可）</span>
+</div>
+<script>
+(function () {
+  var dark = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches;
+  var labelColor = dark ? '#e5e3da' : '#2c2c2a';
+  var edgeColor = dark ? '#5f5e5a' : '#b4b2a9';
+  var gray = '#888780';
+  var C = { k36: '#1D9E75', k0e: '#7F77DD', k9d: '#EF9F27', kecb: '#E24B4A' };
+
+  var modules = [
+    { id: 'm_online', label: '上线模块.dll' },
+    { id: 'm_myabc', label: 'myAbc.dll' },
+    { id: 'm_enc', label: '暗号化ステージ\nd3c135af' }
+  ];
+  var keys = [
+    { id: 'k36', label: '鍵 0x36', parent: 'm_online' },
+    { id: 'k0e', label: '鍵 0x0e', parent: 'm_online' },
+    { id: 'k9d', label: '鍵 0x9d', parent: 'm_myabc' },
+    { id: 'kecb', label: 'AES/SM4-ECB', parent: 'm_enc' }
+  ];
+
+  var ips = [
+    ['118.107.43.16', 'k36', '2d60e3c3', ['6767']],
+    ['118.107.43.29', 'k36', '2d60e3c3', ['6767']],
+    ['118.107.43.82', 'k36', '2d60e3c3', ['6767']],
+    ['134.122.204.23', 'k36', '2d60e3c3 (既知)', ['443']],
+    ['192.252.182.119', 'k36', '9f456f31', ['6661']],
+    ['192.252.183.148', 'k36', 'c2c25871 +Akagi32', ['6666']],
+    ['192.253.224.88', 'k36', '04ff7567', ['8080', '8081']],
+    ['192.253.228.245', 'k36', '211fc1c6', ['80', '6666', '8888']],
+    ['202.61.139.115', 'k0e', 'd0fdcd12', ['1580']],
+    ['202.61.139.158', 'k0e', 'd0fdcd12', ['1580']],
+    ['27.124.40.101', 'k9d', '821c6ea8', ['8080', '8888']],
+    ['27.124.40.105', 'k9d', '821c6ea8', ['8080', '8888']],
+    ['27.124.40.123', 'k9d', '821c6ea8', ['8080', '8888']],
+    ['118.107.32.153', 'kecb', '', ['8080', '8081', '8082']],
+    ['118.107.32.156', 'kecb', '', ['8080', '8081', '8082']],
+    ['118.107.32.158', 'kecb', '', ['8080', '8081', '8082']],
+    ['118.107.40.87', 'kecb', '', ['8080', '8081', '8082']],
+    ['118.107.40.90', 'kecb', '', ['8080', '8081', '8082']],
+    ['118.107.40.91', 'kecb', '', ['8080', '8081', '8082']],
+    ['118.107.9.161', 'kecb', '', ['8081', '8082']],
+    ['118.107.9.167', 'kecb', '', ['8080', '8081', '8082']],
+    ['118.107.9.172', 'kecb', '', ['8080', '8081', '8082']]
+  ];
+
+  var nodes = [], edges = [], portSeen = {};
+  modules.forEach(function (m) {
+    nodes.push({ id: m.id, label: m.label, level: 0, shape: 'box', margin: 10,
+      color: { background: gray, border: gray }, font: { color: '#ffffff', size: 15 } });
+  });
+  keys.forEach(function (k) {
+    nodes.push({ id: k.id, label: k.label, level: 1, shape: 'box', margin: 8,
+      color: { background: C[k.id], border: C[k.id] }, font: { color: '#ffffff', size: 13 } });
+    edges.push({ from: k.parent, to: k.id, color: { color: edgeColor } });
+  });
+  ips.forEach(function (row, i) {
+    var ipId = 'ip' + i, key = row[1], c = C[key];
+    nodes.push({ id: ipId, label: row[0] + (row[2] ? '\n' + row[2] : ''), level: 2, shape: 'box', margin: 6,
+      color: { background: dark ? '#2a2a28' : '#ffffff', border: c }, borderWidth: 1.5,
+      font: { color: labelColor, size: 11 } });
+    edges.push({ from: key, to: ipId, color: { color: c }, width: 1.5 });
+    row[3].forEach(function (p) {
+      var pid = key + '_p' + p;
+      if (!portSeen[pid]) {
+        portSeen[pid] = 1;
+        nodes.push({ id: pid, label: p, level: 3, shape: 'dot', size: 8,
+          color: { background: c, border: c }, font: { color: labelColor, size: 12 } });
+      }
+      edges.push({ from: ipId, to: pid, color: { color: edgeColor }, width: 1 });
+    });
+  });
+
+  var data = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) };
+  var options = {
+    layout: { hierarchical: { enabled: true, direction: 'LR', sortMethod: 'directed',
+      levelSeparation: 210, nodeSpacing: 34, treeSpacing: 46, blockShifting: true, edgeMinimization: true } },
+    physics: false,
+    interaction: { hover: true, dragNodes: true, dragView: true, zoomView: true, tooltipDelay: 120 },
+    edges: { smooth: { type: 'cubicBezier', forceDirection: 'horizontal', roundness: 0.55 } }
+  };
+  var net = new vis.Network(document.getElementById('net'), data, options);
+  net.once('afterDrawing', function () { net.fit({ animation: false }); });
+})();
+</script>
+</body>
+</html>
